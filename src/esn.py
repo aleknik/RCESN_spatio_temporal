@@ -19,6 +19,8 @@ def reservoir_layer(A, Win, input, n):
     states = np.zeros((n, input.shape[1]))
     for i in range(input.shape[1] - 1):
         states[:, i + 1] = np.tanh(np.dot(A, states[:, i]) + np.dot(Win, input[:, i]))
+        noise = np.random.normal(0, 1, states[:, i + 1].shape)
+        states[:, i + 1] = states[:, i + 1] + noise
     return states
 
 

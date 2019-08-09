@@ -17,9 +17,9 @@ master_node_rank = 0
 config = {
     'number_of_reservoirs': 1,
     'number_of_features': 88,
-    'reservoir_size': 200,
+    'reservoir_size': 500,
     'training_size': 10000,
-    'prediction_size': 150,
+    'prediction_size': 100,
     'overlap_size': 0,
     'sigma': 0.5,
     'radius': 0.9,
@@ -109,7 +109,7 @@ def main():
                          sigma, random_state=42, beta=beta, degree=degree).fit(data).predict()
 
     if rank == master_node_rank:
-        result_path = work_root + '/results/Deeper_QG' + dict_to_string(config) + '.txt'
+        result_path = work_root + '/results/Ridge_SCL_QG' + dict_to_string(config) + '.txt'
         np.savetxt(result_path, output)
 
 

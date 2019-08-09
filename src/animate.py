@@ -4,9 +4,9 @@ import pandas as pd
 from matplotlib.animation import FuncAnimation
 
 predict_length = 200
-train_length = 50000
+train_length = 100000
 
-path = '../comp/QG_number_of_reservoirs-1_number_of_features-88_reservoir_size-1000_training_size-50000_prediction_size-1000_overlap_size-0_sigma-0.5_radius-0.9_beta-0.01.txt'
+path = '../comp/QG_beta-100.0_degree-3_number_of_features-88_number_of_reservoirs-11_overlap_size-6_prediction_size-2000_radius-0.99_reservoir_size-1000_sigma-0.5_training_size-100000.txt'
 
 predicted = np.loadtxt(path)[:, :predict_length]
 
@@ -44,4 +44,4 @@ def animate(i):
 anim = FuncAnimation(fig, animate, init_func=init,
                      frames=predict_length, interval=10, blit=True)
 
-anim.save('../anims/anim_0.01.mp4')
+anim.save('../anims/anim_b-1.mp4')

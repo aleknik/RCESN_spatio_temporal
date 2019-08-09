@@ -100,7 +100,7 @@ class ESNParallel:
             else:
                 input_parts_all = None
 
-            # Scatter data for next prediction and split is among resevoirs for current task
+            # Scatter data for next prediction and split is among reservoirs for current task
             input_parts = np.empty((self._ftr_per_grp + 2 * self._lsp) * self._res_per_task)
             comm.Scatter(input_parts_all, input_parts, root=master_node_rank)
             input_parts = [input_parts[i * self._n:(i + 1) * self._n] for i in

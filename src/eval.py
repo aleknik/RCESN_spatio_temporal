@@ -10,13 +10,13 @@ def standardize_data(data):
     return data.T
 
 
-predict_length = 150
-train_length = 10000
+predict_length = 200
+train_length = 100000
 
 # predict_length = train_length + predict_length
 # train_length = 0
 
-path = '../results/Deep_QG_beta-0.0001_degree-3_number_of_features-88_number_of_reservoirs-1_overlap_size-0_prediction_size-150_radius-0.9_reservoir_size-200_sigma-0.5_training_size-10000.txt'
+path = '../comp/QG_beta-100.0_degree-3_number_of_features-88_number_of_reservoirs-11_overlap_size-6_prediction_size-2000_radius-0.99_reservoir_size-1000_sigma-0.5_training_size-100000.txt'
 
 predicted = np.loadtxt(path)[:, :predict_length]
 

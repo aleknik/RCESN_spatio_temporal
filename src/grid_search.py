@@ -1,27 +1,18 @@
 import os
+import random
 
 import numpy as np
 import pandas as pd
 from mpi4py import MPI
 
 from esn_parallel import ESNParallel
+from mpi_logger import print_with_rank
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
 master_node_rank = 0
-
-config = {
-    'number_of_reservoirs': 11,
-    'number_of_features': 88,
-    'reservoir_size': 1000,
-    'training_size': 50000,
-    'prediction_size': 1000,
-    'overlap_size': 6,
-    'sigma': 0.2,
-    'radius': 0.9
-}
 
 
 def dict_to_string(dict):
@@ -41,6 +32,7 @@ def standardize_data(data):
 def load_data(train_length, work_root):
     # pd_data = pd.read_csv(work_root + '/data/3tier_lorenz_v3.csv', header=None).T
     # pd_data = pd.read_csv(work_root + '/data/ks_64.csv', header=None)
+    print(work_root, train_length)
     pd_data = pd.read_csv(work_root + '/data/QG_everydt_avgu.csv', header=None)
     pd_data = standardize_data(pd_data)
 
@@ -48,46 +40,43 @@ def load_data(train_length, work_root):
 
 
 def main():
-    group_grid = [11, 22]
-    res_grid = [5000]
-    lsp_grid = [6, 9, 12]
-    sigma_grid = [0.5]
-    radius_grid = [0.9, 0.5, 0.2]
-
-    work_root = os.environ['WORK']
-
-    # Read hyper parameters
-    group_count = config['number_of_reservoirs']
-    feature_count = config['number_of_features']
-    lsp = config['overlap_size']
-    predict_length = config['prediction_size']
-    train_length = config['training_size']
-    approx_res_size = config['reservoir_size']
-    sigma = config['sigma']
-    radius = config['radius']
+    param_grid = {
+        'group_count': [11],
+        'feature_count': [88],
+        'lsp': list(range(5, 20)),
+        'train_length': [100000],
+        'predict_length': [2000],
+        'approx_res_size': [1000],
+        'radius': list(np.linspace(0.005, 1, endpoint=False)),
+        'sigma': list(np.linspace(0.005, 1)),
+        'random_state': [42],
+        'beta': list(np.logspace(np.log10(0.005), np.log10(10), base=10, num=10)),
+        'degree': list(range(3, 10))
+    }
 
     if rank == master_node_rank:
-        data = load_data(train_length, work_root)
+        work_root = os.environ['WORK']
+        data = load_data(param_grid['train_length'][0], work_root)
     else:
         data = None
+        work_root = None
 
-    for group in group_grid:
-        for res in res_grid:
-            for lsp in lsp_grid:
-                for sigma in sigma_grid:
-                    for radius in radius_grid:
-                        config['number_of_reservoirs'] = group
-                        config['reservoir_size'] = res
-                        config['overlap_size'] = lsp
-                        config['sigma'] = sigma
-                        config['radius'] = radius
+    MAX_EVALS = 60
+    for i in range(MAX_EVALS):
 
-                        output = ESNParallel(group, feature_count, lsp, train_length, predict_length, res, radius,
-                                             sigma, random_state=42).fit(data).predict()
+        if rank == master_node_rank:
+            params = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
+            print_with_rank(str(params))
+        else:
+            params = None
 
-                        if rank == master_node_rank:
-                            result_path = work_root + '/grid/GRID-QG' + dict_to_string(config) + '.txt'
-                            np.savetxt(result_path, output)
+        params = comm.bcast(params, master_node_rank)
+
+        output = ESNParallel(**params).fit(data).predict()
+
+        if rank == master_node_rank:
+            result_path = work_root + '/grid/RANDOM-QG' + dict_to_string(params) + '.txt'
+            np.savetxt(result_path, output)
 
 
 if __name__ == '__main__':
