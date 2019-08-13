@@ -4,20 +4,32 @@ import pandas as pd
 from numpy.linalg import norm
 
 
+def calculate_prediction_horizon(errors, horizon):
+    for i, val in enumerate(errors):
+        if val > horizon:
+            return i
+
+
 def standardize_data(data):
     data = data.T
     data = (data - data.mean()) / data.std()
     return data.T
 
 
-predict_length = 200
+predict_length = 1000
 train_length = 100000
+
+shift = 0
 
 # predict_length = train_length + predict_length
 # train_length = 0
 
-path = '../comp/QG_beta-100.0_degree-3_number_of_features-88_number_of_reservoirs-11_overlap_size-6_prediction_size-2000_radius-0.99_reservoir_size-1000_sigma-0.5_training_size-100000.txt'
-
+# path = '../results/QG_beta-0.2_degree-6_number_of_features-88_number_of_reservoirs-11_overlap_size-11_prediction_size-2000_radius-0.7_reservoir_size-5000_sigma-0.005_training_size-100000.txt'
+# path = '../comp/RANDOM-QG_approx_res_size-2000_degree-6_feature_count-88_group_count-11_train_length-100000_beta-4.2975297258771334_random_state-42_radius-0.24380000000000002_lsp-12_predict_length-2000_sigma-0.04561224489795918.txt'
+# path = 'D:\globus\grid2000\RANDOM-QG_approx_res_size-2000_degree-9_feature_count-88_group_count-11_train_length-100000_beta-0.5797897897897898_random_state-42_radius-0.9420999999999999_lsp-15_predict_length-1000_sigma-0.06075775775775776.txt'
+# path = '../results/NoBias_QG_beta-0.6_degree-9_number_of_features-88_number_of_reservoirs-1_overlap_size-0_prediction_size-1000_radius-0.95_reservoir_size-1000_sigma-0.5_training_size-100000.txt'
+# path = "D:\globus\QG_beta-0.6_degree-9_number_of_features-88_number_of_reservoirs-11_overlap_size-15_prediction_size-2000_radius-0.95_reservoir_size-10000_sigma-0.06_training_size-100000.txt"
+path = "D:\globus\QG_beta-0.6_degree-9_number_of_features-88_number_of_reservoirs-11_overlap_size-15_prediction_size-2000_radius-0.95_reservoir_size-1000_sigma-0.06_training_size-100000.txt"
 predicted = np.loadtxt(path)[:, :predict_length]
 
 le = 1
@@ -36,7 +48,7 @@ data = pd.read_csv('../data/QG_everydt_avgu.csv', header=None)
 
 data = standardize_data(data)
 
-target = np.asarray(data)[:, train_length:train_length + predict_length]
+target = np.asarray(data)[:, shift + train_length:shift + train_length + predict_length]
 # predicted = target
 
 # target = np.load('data/Expansion_2step_backR_size_train_5000_Rd_0.1_Shift_0.npy')
@@ -63,6 +75,7 @@ fig.colorbar(im3, ax=ax3)
 plt.show()
 
 l2_error = norm(predicted - target, axis=0) / np.mean(norm(target, axis=0))
+print(calculate_prediction_horizon(l2_error, 0.3))
 plt.plot(l2_error)
 plt.show()
 

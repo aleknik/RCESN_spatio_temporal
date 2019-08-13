@@ -18,7 +18,7 @@ def generate_reservoir(size, radius, degree, random_state):
 def reservoir_layer(A, Win, input, n):
     states = np.zeros((n, input.shape[1]))
     for i in range(input.shape[1] - 1):
-        states[:, i + 1] = np.tanh(np.dot(A, states[:, i]) + np.dot(Win, input[:, i]))
+        states[:, i + 1] = np.tanh(np.dot(A, states[:, i]) + np.dot(Win, np.append([1], input[:, i], axis=0)))
     return states
 
 
@@ -61,9 +61,11 @@ class ESN:
         self._A = generate_reservoir(self._n, self._radius, self._degree, self._random_state)
         print_with_rank('Reservoir generated')
 
-        q = int(self._n / self._fn)
-        self._Win = np.zeros((self._n, self._fn))
-        for i in range(self._fn):  # init input layer
+        Win_size = self._fn + 1
+
+        q = int(self._n / Win_size)
+        self._Win = np.zeros((self._n, Win_size))
+        for i in range(Win_size):  # init input layer
             np.random.seed(seed=i)
             self._Win[i * q: (i + 1) * q, i] = self._sigma * (-1 + 2 * np.random.rand(1, q)[0])
 
@@ -86,7 +88,7 @@ class ESN:
 
     def predict_next(self, u=None):
         if u is not None:
-            x1 = np.tanh(np.dot(self._A, self.x) + np.dot(self._Win, u))
+            x1 = np.tanh(np.dot(self._A, self.x) + np.dot(self._Win, np.append([1], u)))
             self.x = np.squeeze(np.asarray(x1))
         x_aug = self.x.copy()
         for j in range(2, np.shape(x_aug)[0] - 2):

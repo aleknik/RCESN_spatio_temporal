@@ -14,12 +14,14 @@ rank = comm.Get_rank()
 
 master_node_rank = 0
 
+shift = 0
+
 config = {
     'number_of_reservoirs': 1,
     'number_of_features': 88,
     'reservoir_size': 500,
-    'training_size': 10000,
-    'prediction_size': 100,
+    'training_size': 100000,
+    'prediction_size': 1000,
     'overlap_size': 0,
     'sigma': 0.5,
     'radius': 0.9,
@@ -48,7 +50,7 @@ def load_data(train_length, work_root):
     pd_data = pd.read_csv(work_root + '/data/QG_everydt_avgu.csv', header=None)
     pd_data = standardize_data(pd_data)
 
-    return np.array(pd_data)[:, :train_length]
+    return np.array(pd_data)[:, shift:train_length + shift]
 
 
 def get_config():
@@ -109,7 +111,7 @@ def main():
                          sigma, random_state=42, beta=beta, degree=degree).fit(data).predict()
 
     if rank == master_node_rank:
-        result_path = work_root + '/results/Ridge_SCL_QG' + dict_to_string(config) + '.txt'
+        result_path = work_root + '/results/Bias_QG' + dict_to_string(config) + '.txt'
         np.savetxt(result_path, output)
 
 

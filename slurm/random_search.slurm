@@ -25,8 +25,8 @@
 
 #SBATCH -J esn_prl_grid              # Job name
 #SBATCH -p skx-dev                    # Queue (partition) name
-#SBATCH -o ./log/esn-grid-%j.out          # Name of stdout output file
-#SBATCH -e ./log/esn-grid-%j.err          # Name of stderr error file
+#SBATCH -o ./log/esn-random-%j.out          # Name of stdout output file
+#SBATCH -e ./log/esn-random-%j.err          # Name of stderr error file
 #SBATCH -N 4                         # Total # of nodes
 #SBATCH -n 11
 #SBATCH -t 2:00:00                  # Run time (hh:mm:ss)
@@ -39,6 +39,6 @@ module load python2
 
 # Launch MPI code...
 
-ibrun python ./grid_search.py       # Use ibrun instead of mpirun or mpiexec
+ibrun python ./random_search.py       # Use ibrun instead of mpirun or mpiexec
 
 # ---------------------------------------------------
