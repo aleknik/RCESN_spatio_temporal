@@ -15,10 +15,11 @@ def generate_reservoir(size, radius, degree, random_state):
     return A
 
 
-def reservoir_layer(A, Win, input, n):
+def reservoir_layer(A, Win, input, n, alpha):
     states = np.zeros((n, input.shape[1]))
     for i in range(input.shape[1] - 1):
-        states[:, i + 1] = np.tanh(np.dot(A, states[:, i]) + np.dot(Win, np.append([1], input[:, i], axis=0)))
+        update = np.tanh(np.dot(A, states[:, i]) + np.dot(Win, np.append([1], input[:, i], axis=0)))
+        states[:, i + 1] = (1 - alpha) * states[:, i] + alpha * update
     return states
 
 
@@ -38,7 +39,8 @@ def train(beta, states, data, n, lsp):
 
 
 class ESN:
-    def __init__(self, radius=0.1, degree=3, sigma=0.5, approx_res_size=5000, beta=0.0001, random_state=None, lsp=0):
+    def __init__(self, radius=0.1, degree=3, sigma=0.5, approx_res_size=5000, beta=0.0001, random_state=None, lsp=0,
+                 alpha=1):
         self._radius = radius
         self._degree = degree
         self._sigma = sigma
@@ -46,6 +48,7 @@ class ESN:
         self._beta = beta
         self._random_state = random_state
         self._lsp = lsp
+        self._alpha = alpha
 
         self._fn = None
         self._n = None
@@ -69,7 +72,7 @@ class ESN:
             np.random.seed(seed=i)
             self._Win[i * q: (i + 1) * q, i] = self._sigma * (-1 + 2 * np.random.rand(1, q)[0])
 
-        states = reservoir_layer(self._A, self._Win, data, self._n)
+        states = reservoir_layer(self._A, self._Win, data, self._n, self._alpha)
         print_with_rank('States generated')
         self.x = states[:, -1].copy()
         self._Wout = train(self._beta, states, data, self._n, self._lsp)

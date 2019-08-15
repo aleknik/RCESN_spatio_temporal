@@ -42,17 +42,18 @@ def load_data(train_length, work_root):
 
 def main():
     param_grid = {
-        'group_count': [11],
+        'group_count': [1],
         'feature_count': [88],
-        'lsp': [14],
+        'lsp': [0],
         'train_length': [100000],
         'predict_length': [1000],
         'approx_res_size': [1000],
-        'radius': list(np.linspace(0.9, 1, endpoint=False, num=10000)),
-        'sigma': list(np.linspace(0.01, 0.1, num=10000)),
+        'radius': list(np.linspace(0.001, 1, num=10000, endpoint=False)),
+        'sigma': list(np.linspace(0.001, 1, num=10000)),
         'random_state': [42],
-        'beta': list(np.linspace(0.001, 1, num=10000)),
-        'degree': [7]
+        'beta': list(np.logspace(np.log10(0.001), np.log10(10), num=10000)),
+        'degree': [7],
+        'alpha': list(np.linspace(0.001, 1, num=10000))
     }
 
     if rank == master_node_rank:
@@ -76,7 +77,7 @@ def main():
         output = ESNParallel(**params).fit(data).predict()
 
         if rank == master_node_rank:
-            result_path = work_root + '/grid1000-fine/RANDOM-QG' + dict_to_string(params) + '.txt'
+            result_path = work_root + '/grid1000-alpha-bias/RANDOM-QG' + dict_to_string(params) + '.txt'
             np.savetxt(result_path, output)
 
 

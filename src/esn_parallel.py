@@ -19,7 +19,7 @@ def split_modulo(start, stop, array_len):
 class ESNParallel:
 
     def __init__(self, group_count, feature_count, lsp, train_length, predict_length, approx_res_size, radius, sigma,
-                 random_state, beta=0.0001, degree=3):
+                 random_state, beta=0.0001, degree=3, alpha=1):
         self._lsp = lsp
         self._feature_count = feature_count
         self._group_count = group_count
@@ -36,6 +36,7 @@ class ESNParallel:
         self._random_state = random_state
         self._beta = beta
         self._degree = degree
+        self._alpha = alpha
 
     def fit(self, data):
         if rank == master_node_rank:
@@ -66,7 +67,7 @@ class ESNParallel:
         self._fitted_models = list(
             map(lambda x: ESN(lsp=self._lsp, approx_res_size=self._approx_res_size, radius=self._radius,
                               sigma=self._sigma, random_state=self._random_state * (rank + 1), beta=self._beta,
-                              degree=self._degree).fit(x),
+                              degree=self._degree, alpha=self._alpha).fit(x),
                 data))
 
         return self

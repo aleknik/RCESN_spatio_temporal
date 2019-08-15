@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 from matplotlib.animation import FuncAnimation
 
-predict_length = 500
+predict_length = 1000
 train_length = 100000
 
-path = "D:\globus\grid2000\RANDOM-QG_approx_res_size-2000_degree-9_feature_count-88_group_count-11_train_length-100000_beta-0.5797897897897898_random_state-42_radius-0.9420999999999999_lsp-15_predict_length-1000_sigma-0.06075775775775776.txt"
+path = "D:\globus\grid1000-11-fine\RANDOM-QG_approx_res_size-1000_degree-7_feature_count-88_group_count-11_train_length-100000_beta-0.002739326282577479_random_state-42_radius-0.95_lsp-7_predict_length-1000_sigma-0.05.txt"
 
 predicted = np.loadtxt(path)[:, :predict_length]
 
@@ -44,6 +44,6 @@ def animate(i):
 
 
 anim = FuncAnimation(fig, animate, init_func=init,
-                     frames=predict_length, interval=10, blit=True)
+                     frames=predict_length, interval=50, blit=True)
 
-anim.save('../anims/anim_2000-horizon.mp4')
+anim.save('../anims/anim_1000-11-147.mp4')

@@ -38,7 +38,8 @@ def train(beta, states, data, n, lsp):
 
 
 class ESN:
-    def __init__(self, radius=0.1, degree=3, sigma=0.5, approx_res_size=5000, beta=0.0001, random_state=None, lsp=0):
+    def __init__(self, radius=0.1, degree=3, sigma=0.5, approx_res_size=5000, beta=0.0001, random_state=None, lsp=0,
+                 alpha=1):
         self._radius = radius
         self._degree = degree
         self._sigma = sigma
@@ -46,6 +47,7 @@ class ESN:
         self._beta = beta
         self._random_state = random_state
         self._lsp = lsp
+        self._alpha = alpha
 
         self._fn = None
         self._n = None
