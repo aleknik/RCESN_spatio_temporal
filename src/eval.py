@@ -29,7 +29,7 @@ shift = 0
 # path = 'D:\globus\grid2000\RANDOM-QG_approx_res_size-2000_degree-9_feature_count-88_group_count-11_train_length-100000_beta-0.5797897897897898_random_state-42_radius-0.9420999999999999_lsp-15_predict_length-1000_sigma-0.06075775775775776.txt'
 # path = '../results/NoBias_QG_beta-0.6_degree-9_number_of_features-88_number_of_reservoirs-1_overlap_size-0_prediction_size-1000_radius-0.95_reservoir_size-1000_sigma-0.5_training_size-100000.txt'
 # path = "D:\globus\QG_beta-0.6_degree-9_number_of_features-88_number_of_reservoirs-11_overlap_size-15_prediction_size-2000_radius-0.95_reservoir_size-10000_sigma-0.06_training_size-100000.txt"
-path = "D:\globus\grid2000-11-fine/RANDOM-QG_approx_res_size-2000_degree-7_feature_count-88_group_count-11_train_length-100000_beta-0.030573737666279296_random_state-42_radius-0.95_lsp-7_predict_length-1000_sigma-0.05.txt"
+path = r"D:\globus\grid5000-11\RANDOM-QG_approx_res_size-5000_degree-9_feature_count-88_group_count-11_train_length-100000_beta-0.02250273073630341_random_state-42_radius-0.95_lsp-5_predict_length-1000_sigma-0.05.txt"
 predicted = np.loadtxt(path)[:, :predict_length]
 
 le = 1

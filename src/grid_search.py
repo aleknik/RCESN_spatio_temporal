@@ -1,5 +1,5 @@
+import itertools
 import os
-import random
 
 import numpy as np
 import pandas as pd
@@ -44,15 +44,15 @@ def main():
     param_grid = {
         'group_count': [11],
         'feature_count': [88],
-        'lsp': list(range(3, 15)),
+        'lsp': list(range(3, 30)),
         'train_length': [100000],
         'predict_length': [1000],
-        'approx_res_size': [5000],
-        'radius': list(np.linspace(0.001, 1, num=10000, endpoint=False)),
-        'sigma': list(np.linspace(0.001, 1, num=10000)),
+        'approx_res_size': [1000],
+        'radius': [0.95],
+        'sigma': [0.08],
         'random_state': [42],
-        'beta': list(np.logspace(np.log10(0.001), np.log10(5), num=10000)),
-        'degree': list(range(3, 15)),
+        'beta': [0.003],
+        'degree': [7]
     }
 
     if rank == master_node_rank:
@@ -62,26 +62,19 @@ def main():
         data = None
         work_root = None
 
-    MAX_EVALS = 500000
-    for i in range(MAX_EVALS):
+    keys, values = zip(*param_grid.items())
 
-        if rank == master_node_rank:
-            params = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
-            print_with_rank(str(params))
-        else:
-            params = None
-
-        params = comm.bcast(params, master_node_rank)
+    # Iterate through every possible combination of hyperparameters
+    for v in itertools.product(*values):
+        # Create a hyperparameter dictionary
+        params = dict(zip(keys, v))
+        print_with_rank(str(params))
 
         output = ESNParallel(**params).fit(data).predict()
 
         if rank == master_node_rank:
-            directory = os.path.join(work_root, 'grid5000-explore')
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            result_path = os.path.join(directory, 'RANDOM-QG' + dict_to_string(params) + '.txt')
+            result_path = work_root + '/grid1000-11/RANDOM-QG' + dict_to_string(params) + '.txt'
             np.savetxt(result_path, output)
-            print_with_rank("Saved to " + result_path)
 
 
 if __name__ == '__main__':

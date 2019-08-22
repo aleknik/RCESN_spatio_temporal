@@ -111,8 +111,12 @@ def main():
                          sigma, random_state=42, beta=beta, degree=degree).fit(data).predict()
 
     if rank == master_node_rank:
-        result_path = work_root + '/results/Bias_QG' + dict_to_string(config) + '.txt'
+        directory = os.path.join(work_root, 'results')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        result_path = os.path.join(directory, 'QG' + dict_to_string(config) + '.txt')
         np.savetxt(result_path, output)
+        print_with_rank("Saved to " + result_path)
 
 
 if __name__ == '__main__':

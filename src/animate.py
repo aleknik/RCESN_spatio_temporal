@@ -6,7 +6,7 @@ from matplotlib.animation import FuncAnimation
 predict_length = 1000
 train_length = 100000
 
-path = "D:\globus\grid1000-11-fine\RANDOM-QG_approx_res_size-1000_degree-7_feature_count-88_group_count-11_train_length-100000_beta-0.002739326282577479_random_state-42_radius-0.95_lsp-7_predict_length-1000_sigma-0.05.txt"
+path = "D:\globus\grid2000-11-fine\RANDOM-QG_approx_res_size-2000_degree-11_feature_count-88_group_count-11_train_length-100000_beta-0.0070890013409990295_random_state-42_radius-0.95_lsp-5_predict_length-1000_sigma-0.05.txt"
 
 predicted = np.loadtxt(path)[:, :predict_length]
 
@@ -46,4 +46,4 @@ def animate(i):
 anim = FuncAnimation(fig, animate, init_func=init,
                      frames=predict_length, interval=50, blit=True)
 
-anim.save('../anims/anim_1000-11-147.mp4')
+anim.save('../anims/anim_2000-11-161.mp4')

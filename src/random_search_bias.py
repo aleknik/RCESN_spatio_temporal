@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from mpi4py import MPI
 
-from esn_parallel import ESNParallel
+from esn_parallel_bias import ESNParallel
 from mpi_logger import print_with_rank
 
 comm = MPI.COMM_WORLD
@@ -16,9 +16,9 @@ master_node_rank = 0
 shift = 0
 
 
-def dict_to_string(dict):
+def dict_to_string(dict_to_print):
     string = ''
-    for key, val in dict.items():
+    for key, val in dict_to_print.items():
         string += '_' + str(key) + '-' + str(val)
 
     return string
@@ -42,17 +42,18 @@ def load_data(train_length, work_root):
 
 def main():
     param_grid = {
-        'group_count': [11],
+        'group_count': [1],
         'feature_count': [88],
-        'lsp': list(range(3, 15)),
+        'lsp': [0],
         'train_length': [100000],
         'predict_length': [1000],
-        'approx_res_size': [5000],
-        'radius': list(np.linspace(0.001, 1, num=10000, endpoint=False)),
+        'approx_res_size': [1000],
+        'radius': list(np.linspace(0.5, 1, num=10000, endpoint=False)),
         'sigma': list(np.linspace(0.001, 1, num=10000)),
         'random_state': [42],
         'beta': list(np.logspace(np.log10(0.001), np.log10(5), num=10000)),
-        'degree': list(range(3, 15)),
+        'degree': list(range(5, 10)),
+        'alpha': list(np.linspace(0.001, 1, num=10000))
     }
 
     if rank == master_node_rank:
@@ -76,12 +77,8 @@ def main():
         output = ESNParallel(**params).fit(data).predict()
 
         if rank == master_node_rank:
-            directory = os.path.join(work_root, 'grid5000-explore')
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            result_path = os.path.join(directory, 'RANDOM-QG' + dict_to_string(params) + '.txt')
+            result_path = work_root + '/grid1000-alpha-bias/RANDOM-QG' + dict_to_string(params) + '.txt'
             np.savetxt(result_path, output)
-            print_with_rank("Saved to " + result_path)
 
 
 if __name__ == '__main__':
