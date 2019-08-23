@@ -25,7 +25,7 @@ all_data = np.asarray(pd_data)
 
 target = all_data[:, shift + train_length:shift + train_length + predict_length]
 
-directory = r"D:\globus\grid5000-11"
+directory = r"D:\globus\grid5000-explore"
 
 target_norm_mean = np.mean(norm(target, axis=0))
 

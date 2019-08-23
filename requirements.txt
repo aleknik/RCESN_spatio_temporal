@@ -1,3 +1,4 @@
+scikit-learn
 matplotlib
 mpi4py
 scipy

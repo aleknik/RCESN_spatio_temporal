@@ -14,8 +14,6 @@ rank = comm.Get_rank()
 
 master_node_rank = 0
 
-shift = 0
-
 config = {
     'number_of_reservoirs': 1,
     'number_of_features': 88,
@@ -29,11 +27,16 @@ config = {
     'degree': 3
 }
 
+shifts = list(range(0, config['prediction_size'] * 10, config['prediction_size']))
+
 
 def dict_to_string(dict):
     string = ''
-    for key, val in sorted(dict.items()):
-        string += '_' + str(key) + '-' + str(val)
+    for index, item in enumerate(sorted(dict.items())):
+        key, val = item
+        if index != 0:
+            string += '-'
+        string += str(key) + '=' + str(val)
 
     return string
 
@@ -44,13 +47,13 @@ def standardize_data(data):
     return data.T
 
 
-def load_data(train_length, work_root):
+def load_data(work_root):
     # pd_data = pd.read_csv(work_root + '/data/3tier_lorenz_v3.csv', header=None).T
     # pd_data = pd.read_csv(work_root + '/data/ks_64.csv', header=None)
     pd_data = pd.read_csv(work_root + '/data/QG_everydt_avgu.csv', header=None)
     pd_data = standardize_data(pd_data)
 
-    return np.array(pd_data)[:, shift:train_length + shift]
+    return np.array(pd_data)
 
 
 def get_config():
@@ -103,20 +106,28 @@ def main():
         return
 
     if rank == master_node_rank:
-        data = load_data(train_length, work_root)
+        all_data = load_data(work_root)
     else:
-        data = None
+        all_data = None
 
-    output = ESNParallel(group_count, feature_count, lsp, train_length, predict_length, approx_res_size, radius,
-                         sigma, random_state=42, beta=beta, degree=degree).fit(data).predict()
+    for shift in shifts:
+        config['shift'] = shift
+        if rank == master_node_rank:
+            data = all_data[:, shift: train_length + shift]
+        else:
+            data = None
 
-    if rank == master_node_rank:
-        directory = os.path.join(work_root, 'results')
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        result_path = os.path.join(directory, 'QG' + dict_to_string(config) + '.txt')
-        np.savetxt(result_path, output)
-        print_with_rank("Saved to " + result_path)
+        output = ESNParallel(group_count, feature_count, lsp, train_length, predict_length, approx_res_size, radius,
+                             sigma, random_state=42, beta=beta, degree=degree).fit(data).predict()
+
+        if rank == master_node_rank:
+            shift_folder = dict_to_string({k: v for k, v in config.items() if k != 'shift'})
+            directory = os.path.join(work_root, 'results', shift_folder)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            result_path = os.path.join(directory, 'data=QG-' + dict_to_string(config) + '.txt')
+            np.savetxt(result_path, output)
+            print_with_rank("Saved to " + result_path)
 
 
 if __name__ == '__main__':
