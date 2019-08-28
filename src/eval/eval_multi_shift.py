@@ -29,10 +29,10 @@ data = standardize_data(data)
 
 data = np.asarray(data)
 
-directory = r"D:\globus\multi_shift"
+directory = r"D:\stampede\shift_results\beta=0.015-degree=7-number_of_features=88-number_of_reservoirs=11-overlap_size=7-prediction_size=1000-radius=0.95-reservoir_size=5000-sigma=0.05-training_size=100000"
 
 # PCA
-pca = decomposition.PCA(n_components=0.95)
+pca = decomposition.PCA(n_components=1)
 pca.fit(data.T)
 
 l2_error_sum = np.zeros(predict_length)
@@ -55,6 +55,7 @@ for filename in os.listdir(directory):
     plt.plot(predicted[0, :])
     plt.plot(target[0, :])
     plt.xlabel('t')
+    plt.ylabel('PC1')
     plt.figlegend(['predicted', 'target'], loc='upper left')
     plt.title('Data plot PCA shift=' + str(shift))
     plt.show()
@@ -63,6 +64,7 @@ l2_error = l2_error_sum / count
 
 y_horizon = 0.3
 x_horizon = calculate_prediction_horizon(l2_error, y_horizon)
+print('Horizon: ' + str(x_horizon))
 
 plt.plot(l2_error)
 plt.xlabel('t')

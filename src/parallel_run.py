@@ -122,7 +122,7 @@ def main():
 
         if rank == master_node_rank:
             shift_folder = dict_to_string({k: v for k, v in config.items() if k != 'shift'})
-            directory = os.path.join(work_root, 'results', shift_folder)
+            directory = os.path.join(work_root, 'shift_results', shift_folder)
             if not os.path.exists(directory):
                 os.makedirs(directory)
             result_path = os.path.join(directory, 'data=QG-' + dict_to_string(config) + '.txt')
