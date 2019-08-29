@@ -29,7 +29,7 @@ data = standardize_data(data)
 
 data = np.asarray(data)
 
-directory = r"D:\stampede\shift_results\beta=0.015-degree=7-number_of_features=88-number_of_reservoirs=11-overlap_size=7-prediction_size=1000-radius=0.95-reservoir_size=5000-sigma=0.05-training_size=100000"
+directory = r"D:\stampede\random_shift_results\_approx_res_size-2000_degree-7_feature_count-88_group_count-11_train_length-100000_beta-0.017752809678139414_random_state-42_radius-0.95_lsp-7_predict_length-1000_sigma-0.05"
 
 # PCA
 pca = decomposition.PCA(n_components=1)
@@ -40,7 +40,7 @@ count = 0
 for filename in os.listdir(directory):
     path = os.path.join(directory, filename)
     predicted = np.loadtxt(path)[:, :predict_length]
-    shift = re.findall(r'shift=\d+', filename)[0].split('=')[1]
+    shift = re.findall(r'shift-\d+', filename)[0].split('-')[1]
     shift = int(shift)
 
     target = data[:, shift + train_length:shift + train_length + predict_length]

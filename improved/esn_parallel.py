@@ -1,7 +1,7 @@
 import numpy as np
 from mpi4py import MPI
 
-from esn_bias import ESN
+from esn import ESN
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
@@ -37,6 +37,45 @@ class ESNParallel:
         self._beta = beta
         self._degree = degree
         self._alpha = alpha
+
+    def fit_reservoir(self, data):
+        if rank == master_node_rank:
+            # data = load_data(train_length, work_root)
+            splits = np.concatenate(list(
+                map(lambda i: data[
+                              split_modulo(i * self._ftr_per_grp - self._lsp, (i + 1) * self._ftr_per_grp + self._lsp,
+                                           self._feature_count), :],
+                    range(self._group_count))))
+            self._output = np.zeros((self._feature_count, self._predict_length))
+            # print_with_rank('Data loaded')
+        else:
+            splits = None
+
+        # if rank == master_node_rank:
+        #     run_time = MPI.Wtime()
+
+        # Scatter data to each task
+        data = np.empty([(self._ftr_per_grp + 2 * self._lsp) * self._res_per_task, self._train_length])
+        comm.Scatter(splits, data, root=master_node_rank)
+
+        # print_with_rank('Training started')
+
+        # Split data based on number of reservoirs per task
+        data = [data[i * self._n:(i + 1) * self._n, :] for i in range((len(data) + self._n - 1) // self._n)]
+
+        # Fit each model on part of data
+        self._fitted_models = list(
+            map(lambda x: ESN(lsp=self._lsp, approx_res_size=self._approx_res_size, radius=self._radius,
+                              sigma=self._sigma, random_state=self._random_state * (rank + 1), beta=self._beta,
+                              degree=self._degree, alpha=self._alpha).fit_reservoir(x),
+                data))
+
+        return self
+
+    def fit_output(self):
+        for model in self._fitted_models:
+            model.fit_output()
+        return self
 
     def fit(self, data):
         if rank == master_node_rank:
