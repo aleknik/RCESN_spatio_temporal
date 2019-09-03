@@ -49,11 +49,12 @@ def main():
         'train_length': [100000],
         'predict_length': [1000],
         'approx_res_size': [1000],
-        'radius': [0.95],
-        'sigma': [0.05],
+        'radius': list(np.linspace(0.0001, 1, endpoint=False, num=1000)),
+        'sigma': list(np.linspace(0.0001, 1, num=1000)),
         'random_state': [42],
-        'beta': list(np.logspace(np.log10(0.001), np.log10(5), num=10000)),
+        'beta': [0.003],
         'degree': [7],
+        'alpha': list(np.linspace(0.0001, 1, num=1000)),
     }
 
     shifts = list(range(0, param_grid['predict_length'][0] * 10, param_grid['predict_length'][0]))
@@ -87,7 +88,7 @@ def main():
             if rank == master_node_rank:
                 params['shift'] = shift
                 shift_folder = dict_to_string({k: v for k, v in params.items() if k != 'shift'})
-                directory = os.path.join(work_root, 'random_shift_results', shift_folder)
+                directory = os.path.join(work_root, 'results/random_shift_results', shift_folder)
                 if not os.path.exists(directory):
                     os.makedirs(directory)
                 result_path = os.path.join(directory, 'data=QG-' + dict_to_string(params) + '.txt')

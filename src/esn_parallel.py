@@ -38,7 +38,7 @@ class ESNParallel:
         self._degree = degree
         self._alpha = alpha
 
-    def fit(self, data):
+    def fit_reservoir(self, data):
         if rank == master_node_rank:
             # data = load_data(train_length, work_root)
             splits = np.concatenate(list(
@@ -67,10 +67,18 @@ class ESNParallel:
         self._fitted_models = list(
             map(lambda x: ESN(lsp=self._lsp, approx_res_size=self._approx_res_size, radius=self._radius,
                               sigma=self._sigma, random_state=self._random_state * (rank + 1), beta=self._beta,
-                              degree=self._degree, alpha=self._alpha).fit(x),
+                              degree=self._degree, alpha=self._alpha).fit_reservoir(x),
                 data))
 
         return self
+
+    def fit_output(self):
+        for model in self._fitted_models:
+            model.fit_output()
+        return self
+
+    def fit(self, data):
+        return self.fit_reservoir(data).fit_output()
 
     def predict(self):
         input_parts = [None] * self._res_per_task

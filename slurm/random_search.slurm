@@ -23,13 +23,13 @@
 #
 #----------------------------------------------------
 
-#SBATCH -J esn_prl_grid              # Job name
-#SBATCH -p skx-dev                    # Queue (partition) name
+#SBATCH -J esn_prl_rand             # Job name
+#SBATCH -p normal                    # Queue (partition) name
 #SBATCH -o ./log/esn-random-%j.out          # Name of stdout output file
 #SBATCH -e ./log/esn-random-%j.err          # Name of stderr error file
-#SBATCH -N 4                         # Total # of nodes
+#SBATCH -N 5                         # Total # of nodes
 #SBATCH -n 11
-#SBATCH -t 2:00:00                  # Run time (hh:mm:ss)
+#SBATCH -t 5:00:00                  # Run time (hh:mm:ss)
 #SBATCH --mail-user=nikolic95@gmail.com
 #SBATCH --mail-type=end    # Send email at begin and end of job
 

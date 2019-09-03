@@ -30,7 +30,7 @@ all_data = np.asarray(pd_data)
 
 target = all_data[:, shift + train_length:shift + train_length + predict_length]
 
-directory = r"D:\stampede\random_shift_results"
+directory = r"D:\stampede\shift_results_test"
 
 target_norm_mean = np.mean(norm(target, axis=0))
 
@@ -43,7 +43,7 @@ for dir_name in get_immediate_subdirectories(directory):
     for filename in os.listdir(os.path.join(directory, dir_name)):
         path = os.path.join(directory, dir_name, filename)
         predicted = np.loadtxt(path)[:, :predict_length]
-        shift = re.findall(r'shift-\d+', filename)[0].split('-')[1]
+        shift = re.findall(r'shift=\d+', filename)[0].split('=')[1]
         shift = int(shift)
 
         target = all_data[:, shift + train_length:shift + train_length + predict_length]
