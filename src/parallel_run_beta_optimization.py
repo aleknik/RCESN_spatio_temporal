@@ -1,25 +1,25 @@
 import os
 
 import numpy as np
-import pandas as pd
 from mpi4py import MPI
 
-import arg_parser
 from esn_parallel import ESNParallel
 from mpi_logger import print_with_rank
+from utils import load_data, dict_to_string, get_config
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
 master_node_rank = 0
+shift_count = 1
 
-config = {
+default_config = {
     'number_of_reservoirs': 1,
     'number_of_features': 88,
-    'reservoir_size': 100,
-    'training_size': 1000,
-    'prediction_size': 100,
+    'reservoir_size': 500,
+    'training_size': 100000,
+    'prediction_size': 1000,
     'overlap_size': 0,
     'sigma': 0.5,
     'radius': 0.9,
@@ -27,64 +27,15 @@ config = {
     'degree': 3
 }
 
-beta_optimization = list(np.linspace(start=0.001, stop=1, num=100))
+beta_optimization = [0.0001]
 
-shifts = list(range(0, config['prediction_size'] * 10, config['prediction_size']))
-
-
-def dict_to_string(dict):
-    string = ''
-    for index, item in enumerate(sorted(dict.items())):
-        key, val = item
-        if index != 0:
-            string += '-'
-        string += str(key) + '=' + str(val)
-
-    return string
-
-
-def standardize_data(data):
-    data = data.T
-    data = (data - data.mean()) / data.std()
-    return data.T
-
-
-def load_data(work_root):
-    # pd_data = pd.read_csv(work_root + '/data/3tier_lorenz_v3.csv', header=None).T
-    # pd_data = pd.read_csv(work_root + '/data/ks_64.csv', header=None)
-    pd_data = pd.read_csv(work_root + '/data/QG_everydt_avgu.csv', header=None)
-    pd_data = standardize_data(pd_data)
-
-    return np.array(pd_data)
-
-
-def get_config():
-    names = ['g', 'l', 'r', 's', 'rad', 'b', 'd']
-
-    args = arg_parser.parse(names)
-
-    for arg, value in args.items():
-        if arg == 'g' and value is not None:
-            config['number_of_reservoirs'] = int(value)
-        elif arg == 'l' and value is not None:
-            config['overlap_size'] = int(value)
-        elif arg == 'r' and value is not None:
-            config['reservoir_size'] = int(value)
-        elif arg == 's' and value is not None:
-            config['sigma'] = float(value)
-        elif arg == 'rad' and value is not None:
-            config['radius'] = float(value)
-        elif arg == 'b' and value is not None:
-            config['beta'] = float(value)
-        elif arg == 'd' and value is not None:
-            config['degree'] = int(value)
-    return config
+shifts = list(range(0, default_config['prediction_size'] * shift_count, default_config['prediction_size']))
 
 
 def main():
     work_root = os.environ['WORK']
 
-    config = get_config()
+    config = get_config(default_config)
     print_with_rank(str(config))
 
     # Read hyper parameters
@@ -108,7 +59,7 @@ def main():
         return
 
     if rank == master_node_rank:
-        all_data = load_data(work_root)
+        all_data = load_data(work_root, 'data/QG_everydt_avgu.csv')
     else:
         all_data = None
 
@@ -129,7 +80,7 @@ def main():
             if rank == master_node_rank:
                 config['beta'] = beta
                 shift_folder = dict_to_string({k: v for k, v in config.items() if k != 'shift'})
-                directory = os.path.join(work_root, 'shift_results_test', shift_folder)
+                directory = os.path.join(work_root, 'results/beta_shift_results', shift_folder)
                 if not os.path.exists(directory):
                     os.makedirs(directory)
                 result_path = os.path.join(directory, 'data=QG-' + dict_to_string(config) + '.txt')

@@ -2,6 +2,7 @@ import numpy as np
 from mpi4py import MPI
 
 from esn import ESN
+from mpi_logger import print_with_rank
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
@@ -11,13 +12,19 @@ master_node_rank = 0
 
 
 def split_modulo(start, stop, array_len):
+    """
+    Get indices with modulo.
+    :param start: start
+    :param stop: end
+    :param array_len: array length
+    :return: array od indices
+    """
     if stop <= start:
         stop += array_len
     return np.arange(start, stop) % array_len
 
 
 class ESNParallel:
-
     def __init__(self, group_count, feature_count, lsp, train_length, predict_length, approx_res_size, radius, sigma,
                  random_state, beta=0.0001, degree=3, alpha=1):
         self._lsp = lsp
@@ -39,26 +46,25 @@ class ESNParallel:
         self._alpha = alpha
 
     def fit_reservoir(self, data):
+        """
+        Generate reservoir layers for all reservoir on current node
+        :param data: training data
+        :return: self
+        """
         if rank == master_node_rank:
-            # data = load_data(train_length, work_root)
             splits = np.concatenate(list(
                 map(lambda i: data[
                               split_modulo(i * self._ftr_per_grp - self._lsp, (i + 1) * self._ftr_per_grp + self._lsp,
                                            self._feature_count), :],
                     range(self._group_count))))
             self._output = np.zeros((self._feature_count, self._predict_length))
-            # print_with_rank('Data loaded')
+            print_with_rank('Data loaded')
         else:
             splits = None
-
-        # if rank == master_node_rank:
-        #     run_time = MPI.Wtime()
 
         # Scatter data to each task
         data = np.empty([(self._ftr_per_grp + 2 * self._lsp) * self._res_per_task, self._train_length])
         comm.Scatter(splits, data, root=master_node_rank)
-
-        # print_with_rank('Training started')
 
         # Split data based on number of reservoirs per task
         data = [data[i * self._n:(i + 1) * self._n, :] for i in range((len(data) + self._n - 1) // self._n)]
@@ -69,27 +75,39 @@ class ESNParallel:
                               sigma=self._sigma, random_state=self._random_state * (rank + 1), beta=self._beta,
                               degree=self._degree, alpha=self._alpha).fit_reservoir(x),
                 data))
+        print_with_rank('Reservoirs generated')
 
         return self
 
     def fit_output(self):
+        """
+        Fit output layers for all model on current node
+        :return: self
+        """
         for model in self._fitted_models:
             model.fit_output()
+
+        print_with_rank('Output fitted')
         return self
 
     def fit(self, data):
+        """
+        Fit model.
+        :param data: Training data
+        :return: self
+        """
         return self.fit_reservoir(data).fit_output()
 
     def predict(self):
+        """
+        Predict series.
+        :return: predicted series
+        """
         input_parts = [None] * self._res_per_task
         for j in range(self._predict_length):
             # Predict next time step for each model in current task
             output_parts = np.concatenate(
                 list(map(lambda model, input_data: model.predict_next(input_data), self._fitted_models, input_parts)))
-
-            # Debug print
-            # if j % 100 == 0:
-            #     print_with_rank('predicted ' + str(j))
 
             # Gather all predictions on master task
             if rank == master_node_rank:
@@ -114,5 +132,6 @@ class ESNParallel:
             comm.Scatter(input_parts_all, input_parts, root=master_node_rank)
             input_parts = [input_parts[i * self._n:(i + 1) * self._n] for i in
                            range((len(input_parts) + self._n - 1) // self._n)]
+        print_with_rank('Prediction finished')
 
         return self._output

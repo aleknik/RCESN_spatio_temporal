@@ -48,7 +48,7 @@ def main():
         'lsp': [7],
         'train_length': [100000],
         'predict_length': [1000],
-        'approx_res_size': [1000],
+        'approx_res_size': [200],
         'radius': list(np.linspace(0.0001, 1, endpoint=False, num=1000)),
         'sigma': list(np.linspace(0.0001, 1, num=1000)),
         'random_state': [42],
