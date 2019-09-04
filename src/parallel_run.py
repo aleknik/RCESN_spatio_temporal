@@ -12,7 +12,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 master_node_rank = 0
-shift_count = 1
+shift_count = 10
 
 default_config = {
     'number_of_reservoirs': 11,

@@ -2,43 +2,18 @@ import os
 import random
 
 import numpy as np
-import pandas as pd
 from mpi4py import MPI
 
 from esn_parallel import ESNParallel
 from mpi_logger import print_with_rank
+from utils import load_data, dict_to_string
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
 master_node_rank = 0
-
-
-def dict_to_string(dict):
-    string = ''
-    for index, item in enumerate(sorted(dict.items())):
-        key, val = item
-        if index != 0:
-            string += '-'
-        string += str(key) + '=' + str(val)
-
-    return string
-
-
-def standardize_data(data):
-    data = data.T
-    data = (data - data.mean()) / data.std()
-    return data.T
-
-
-def load_data(work_root):
-    # pd_data = pd.read_csv(work_root + '/data/3tier_lorenz_v3.csv', header=None).T
-    # pd_data = pd.read_csv(work_root + '/data/ks_64.csv', header=None)
-    pd_data = pd.read_csv(work_root + '/data/QG_everydt_avgu.csv', header=None)
-    pd_data = standardize_data(pd_data)
-
-    return np.array(pd_data)
+shift_count = 10
 
 
 def main():
@@ -46,8 +21,8 @@ def main():
         'group_count': [11],
         'feature_count': [88],
         'lsp': [7],
-        'train_length': [100000],
-        'predict_length': [1000],
+        'train_length': [10000],
+        'predict_length': [100],
         'approx_res_size': [200],
         'radius': list(np.linspace(0.0001, 1, endpoint=False, num=1000)),
         'sigma': list(np.linspace(0.0001, 1, num=1000)),
@@ -57,17 +32,17 @@ def main():
         'alpha': list(np.linspace(0.0001, 1, num=1000)),
     }
 
-    shifts = list(range(0, param_grid['predict_length'][0] * 10, param_grid['predict_length'][0]))
+    shifts = list(range(0, param_grid['predict_length'][0] * shift_count, param_grid['predict_length'][0]))
 
     if rank == master_node_rank:
         work_root = os.environ['WORK']
-        all_data = load_data(work_root)
+        all_data = load_data(work_root, 'data/QG_everydt_avgu.csv')
     else:
         all_data = None
         work_root = None
 
-    MAX_EVALS = 500000
-    for i in range(MAX_EVALS):
+    max_evals = 500000
+    for i in range(max_evals):
 
         if rank == master_node_rank:
             params = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
