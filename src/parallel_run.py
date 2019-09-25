@@ -12,19 +12,19 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 master_node_rank = 0
-shift_count = 10
+shift_count = 1
 
 default_config = {
-    'number_of_reservoirs': 11,
+    'number_of_reservoirs': 1,
     'number_of_features': 88,
     'reservoir_size': 1000,
-    'training_size': 100000,
-    'prediction_size': 1000,
+    'training_size': 500000,
+    'prediction_size': 1,
     'overlap_size': 0,
-    'sigma': 0.5,
-    'radius': 0.9,
-    'beta': 0.0001,
-    'degree': 3
+    'sigma': 0.05,
+    'radius': 0.95,
+    'beta': 0.0000001,
+    'degree': 7
 }
 
 shifts = list(range(0, default_config['prediction_size'] * shift_count, default_config['prediction_size']))
@@ -57,7 +57,7 @@ def main():
         return
 
     if rank == master_node_rank:
-        all_data = load_data(work_root, 'data/QG_everydt_avgu.csv')
+        all_data = load_data(work_root, 'data/ks_512.csv', transpose=False)
     else:
         all_data = None
 
@@ -69,14 +69,14 @@ def main():
             data = None
 
         output = ESNParallel(group_count, feature_count, lsp, train_length, predict_length, approx_res_size, radius,
-                             sigma, random_state=42, beta=beta, degree=degree).fit(data).predict()
+                             sigma, random_state=42, beta=beta, degree=degree, bias=False).fit(data).predict()
 
         if rank == master_node_rank:
             shift_folder = dict_to_string({k: v for k, v in config.items() if k != 'shift'})
             directory = os.path.join(work_root, 'results/shift_results', shift_folder)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            result_path = os.path.join(directory, 'data=QG-' + dict_to_string(config) + '.txt')
+            result_path = os.path.join(directory, 'data=LZ-' + dict_to_string(config) + '.txt')
             np.savetxt(result_path, output)
             print_with_rank("Saved to " + result_path)
 

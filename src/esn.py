@@ -25,13 +25,16 @@ def reservoir_layer(A, Win, input, n, alpha, bias):
     return states
 
 
+
 def train(beta, states, data, n, lsp):
     idenmat = beta * sparse.identity(n)
     U = np.dot(states, states.transpose()) + idenmat
     Uinv = np.linalg.inv(U)
 
-    Wout = np.dot(Uinv, np.dot(states, data[lsp:data.shape[0] - lsp, :].transpose()))
-    return Wout.transpose()
+    Wout = np.dot(Uinv, np.dot(states, data[lsp:data.shape[0] - lsp, :].transpose())).T
+    prediction = np.dot(Wout, states)
+    error = np.sum(np.square(prediction - data[lsp:data.shape[0] - lsp, :]))
+    return Wout, error
 
     # Wout = np.dot(np.dot(data[lsp:data.shape[0] - lsp, :], states.transpose()), Uinv)
     # return Wout
@@ -60,6 +63,7 @@ class ESN:
 
         self.x = None
         self._train_x = None
+        self.training_error = 0
 
     def generate_reservoir(self, data):
         """
@@ -104,8 +108,9 @@ class ESN:
         Fit output layer by ridge regression
         :return: self
         """
-        self._Wout = train(self._beta, self._states, self._data, self._n, self._lsp)
+        self._Wout, self.training_error = train(self._beta, self._states, self._data, self._n, self._lsp)
         self.x = self._train_x.copy()
+
         return self
 
     def fit_reservoir(self, data):

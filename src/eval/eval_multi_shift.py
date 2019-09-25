@@ -29,7 +29,7 @@ data = standardize_data(data)
 
 data = np.asarray(data)
 
-directory = r"D:\stampede\shift_results_test\beta=0.001-degree=7-number_of_features=88-number_of_reservoirs=11-overlap_size=7-prediction_size=1000-radius=0.95-reservoir_size=2000-sigma=0.05-training_size=100000"
+directory = r"D:\wrangler\random_shift_results\alpha=0.807827027027027-approx_res_size=1000-beta=0.003-degree=7-feature_count=88-group_count=11-lsp=7-predict_length=1000-radius=0.5310469-random_state=42-sigma=0.0021018018018018015-train_length=100000"
 
 # PCA
 pca = decomposition.PCA(n_components=1)

@@ -26,7 +26,7 @@ def split_modulo(start, stop, array_len):
 
 class ESNParallel:
     def __init__(self, group_count, feature_count, lsp, train_length, predict_length, approx_res_size, radius, sigma,
-                 random_state, beta=0.0001, degree=3, alpha=1):
+                 random_state, beta=0.0001, degree=3, alpha=1, bias=False):
         self._lsp = lsp
         self._feature_count = feature_count
         self._group_count = group_count
@@ -44,6 +44,7 @@ class ESNParallel:
         self._beta = beta
         self._degree = degree
         self._alpha = alpha
+        self._bias = bias
 
     def fit_reservoir(self, data):
         """
@@ -73,7 +74,7 @@ class ESNParallel:
         self._fitted_models = list(
             map(lambda x: ESN(lsp=self._lsp, approx_res_size=self._approx_res_size, radius=self._radius,
                               sigma=self._sigma, random_state=self._random_state * (rank + 1), beta=self._beta,
-                              degree=self._degree, alpha=self._alpha).fit_reservoir(x),
+                              degree=self._degree, alpha=self._alpha, bias=self._bias).fit_reservoir(x),
                 data))
         print_with_rank('Reservoirs generated')
 
@@ -87,7 +88,7 @@ class ESNParallel:
         for model in self._fitted_models:
             model.fit_output()
 
-        print_with_rank('Output fitted')
+        print_with_rank('Output fitted with error: ' + str(sum(model.training_error for model in self._fitted_models)))
         return self
 
     def fit(self, data):

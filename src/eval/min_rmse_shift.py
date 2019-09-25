@@ -30,7 +30,7 @@ all_data = np.asarray(pd_data)
 
 target = all_data[:, shift + train_length:shift + train_length + predict_length]
 
-directory = r"D:\stampede\shift_results_test"
+directory = r"D:\wrangler\random_shift_results"
 
 target_norm_mean = np.mean(norm(target, axis=0))
 
