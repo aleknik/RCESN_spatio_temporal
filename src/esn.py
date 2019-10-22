@@ -14,8 +14,8 @@ def generate_reservoir(size, radius, degree, random_state):
 
 
 def reservoir_layer(A, Win, input, n, alpha, bias):
-    states = np.zeros((n, input.shape[1]))
-    for i in range(input.shape[1] - 1):
+    states = np.zeros((n, input.shape[1] + 1))
+    for i in range(input.shape[1]):
         if bias:
             input_bias = np.append([1], input[:, i], axis=0)
         else:
@@ -23,7 +23,6 @@ def reservoir_layer(A, Win, input, n, alpha, bias):
         update = np.tanh(np.dot(A, states[:, i]) + np.dot(Win, input_bias))
         states[:, i + 1] = (1 - alpha) * states[:, i] + alpha * update
     return states
-
 
 
 def train(beta, states, data, n, lsp):
@@ -89,7 +88,7 @@ class ESN:
         states = reservoir_layer(self._A, self._Win, data, self._n, self._alpha, self._bias)
         self._train_x = states[:, -1].copy()
 
-        return states
+        return states[:, :-1]
 
     def transform_states(self, states):
         """
